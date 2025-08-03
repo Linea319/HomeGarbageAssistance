@@ -4,11 +4,22 @@
 -->
 <template>
   <div id="app" class="app">
-    <!-- ヘッダー -->
-    <AppHeader @category-selected="onCategorySelected" />
+    <!-- 管理パネル -->
+    <AdminPanel 
+      v-if="showAdminPanel"
+      @close="closeAdminPanel"
+    />
     
     <!-- メイン画面 -->
-    <main class="main-content">
+    <div v-else>
+      <!-- ヘッダー -->
+      <AppHeader 
+        @category-selected="onCategorySelected" 
+        @open-data-management="openDataManagement"
+      />
+      
+      <!-- メイン画面 -->
+      <main class="main-content">
       <div v-if="loading" class="loading-container">
         <div class="loading-spinner"></div>
         <p>読み込み中...</p>
@@ -52,7 +63,6 @@
               class="tomorrow-card"
             >
               <span class="tomorrow-category">{{ category.category }}</span>
-              <span class="tomorrow-day">{{ getDayInJapanese(category.date) }}</span>
             </div>
           </div>
         </div>
@@ -75,7 +85,7 @@
             <h4>{{ selectedSearchResult.garbage_type.name }}</h4>
             <div class="item-details">
               <span class="category">{{ selectedSearchResult.category.category }}</span>
-              <span class="day">{{ getDayInJapanese(selectedSearchResult.category.date) }}</span>
+              <span v-for="date in selectedSearchResult.category.date" class="day">{{ getDayInJapanese(date) }}</span>
             </div>
             <div class="method">
               <strong>回収方法:</strong> {{ selectedSearchResult.category.method }}
@@ -87,6 +97,7 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
@@ -94,9 +105,10 @@
 import { ref, onMounted, computed, nextTick, watch } from 'vue';
 import AppHeader from '@/components/AppHeader.vue';
 import GarbageCard from '@/components/GarbageCard.vue';
+import AdminPanel from '@/components/AdminPanel.vue';
 import { useGarbageApi } from '@/composables/useGarbageApi';
 import type { GarbageCategory, SearchResult, DayOfWeek } from '@/types';
-import { DAYS_JP } from '@/types';
+import { DAYS_JP, getDaysAsArray } from '@/types';
 
 // Reactive data
 const allCategories = ref<GarbageCategory[]>([]);
@@ -106,6 +118,7 @@ const showSearchPopup = ref(false);
 const selectedSearchResult = ref<SearchResult | null>(null);
 const cardsScrollRef = ref<HTMLElement | null>(null);
 const todayDay = ref<string>('');
+const showAdminPanel = ref(false);
 
 // API composable
 const { 
@@ -125,7 +138,11 @@ const tomorrowCategories = computed(() => {
   const tomorrowIndex = (todayIndex + 1) % 7;
   const tomorrowDay = days[tomorrowIndex];
   
-  return allCategories.value.filter(cat => cat.date === tomorrowDay);
+  // 複数曜日対応：明日の曜日が含まれるカテゴリを抽出
+  return allCategories.value.filter(cat => {
+    const catDays = Array.isArray(cat.date) ? cat.date : [cat.date];
+    return catDays.includes(tomorrowDay);
+  });
 });
 
 // Methods
@@ -183,13 +200,23 @@ function onCategorySelected(category: GarbageCategory) {
   showSearchPopup.value = true;
 }
 
+function openDataManagement() {
+  showAdminPanel.value = true;
+}
+
+function closeAdminPanel() {
+  showAdminPanel.value = false;
+}
+
 function closeSearchPopup() {
   showSearchPopup.value = false;
   selectedSearchResult.value = null;
 }
 
 function isTodayCard(category: GarbageCategory): boolean {
-  return category.date === todayDay.value;
+  // 複数曜日対応：今日の曜日が含まれるかチェック
+  const catDays = Array.isArray(category.date) ? category.date : [category.date];
+  return catDays.includes(todayDay.value);
 }
 
 function getDayInJapanese(englishDay: string): string {

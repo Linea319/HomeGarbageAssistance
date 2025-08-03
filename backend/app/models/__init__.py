@@ -19,7 +19,7 @@ class GarbageCategory(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(100), nullable=False, unique=True)
-    date = db.Column(db.String(20), nullable=False)  # Monday, Tuesday, etc.
+    date = db.Column(db.Text, nullable=False)  # JSON string for multiple days (e.g., ["Monday", "Tuesday"])
     method = db.Column(db.String(200), nullable=False)
     special_days = db.Column(db.Text)  # JSON string for special collection days
     notion = db.Column(db.Text)  # Additional notes
@@ -42,11 +42,23 @@ class GarbageCategory(db.Model):
                 special_days_list = json.loads(self.special_days)
             except json.JSONDecodeError:
                 special_days_list = []
+        
+        # dateフィールドも複数曜日に対応
+        date_list = []
+        if self.date:
+            try:
+                date_list = json.loads(self.date)
+                # 後方互換性のため、文字列の場合は配列に変換
+                if isinstance(date_list, str):
+                    date_list = [date_list]
+            except json.JSONDecodeError:
+                # JSONでない場合は単一の文字列として扱う
+                date_list = [self.date]
                 
         return {
             'id': self.id,
             'category': self.category,
-            'date': self.date,
+            'date': date_list,
             'method': self.method,
             'special_days': special_days_list,
             'notion': self.notion,

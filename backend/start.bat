@@ -58,6 +58,21 @@ REM Set environment variables
 echo [INFO] Setting environment variables...
 set FLASK_ENV=%MODE%
 set FLASK_APP=app.py
+
+REM Check if database exists and initialize if needed
+echo [INFO] Checking database status...
+python manage_db.py status >nul 2>&1
+if errorlevel 1 (
+    echo [INFO] Database not found. Initializing database...
+    python init_db.py
+    if errorlevel 1 (
+        echo [ERROR] Failed to initialize database
+        pause
+        exit /b 1
+    )
+) else (
+    echo [INFO] Database already exists
+)
 set PYTHONPATH=%CD%
 
 REM Display configuration

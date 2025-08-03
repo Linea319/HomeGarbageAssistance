@@ -83,7 +83,7 @@ Write-Host "[SUCCESS] Dependencies installed successfully" -ForegroundColor Gree
 # Set environment variables
 Write-Host "[INFO] Setting environment variables..." -ForegroundColor Blue
 $env:FLASK_ENV = $Mode
-$env:FLASK_APP = "app.py"
+$env:FLASK_APP = "main.py"
 $env:PYTHONPATH = (Get-Location).Path
 
 # Display configuration
@@ -112,7 +112,7 @@ Write-Host "[INFO] Starting server... Press Ctrl+C to stop" -ForegroundColor Blu
 Write-Host
 
 try {
-    python app.py
+    python main.py
 } catch {
     Write-Host "[ERROR] Application failed to start" -ForegroundColor Red
     Write-Host "Error: $_" -ForegroundColor Red

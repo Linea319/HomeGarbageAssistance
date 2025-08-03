@@ -41,7 +41,9 @@ def createApp(configName: str = None) -> Flask:
     db.init_app(app)
     
     # ブループリント登録
+    from app.routes.admin_routes import admin_bp
     app.register_blueprint(garbage_bp)
+    app.register_blueprint(admin_bp)
     
     # ヘルスチェックエンドポイント
     @app.route('/api/health', methods=['GET'])
@@ -57,10 +59,8 @@ def createApp(configName: str = None) -> Flask:
             'config': configName
         })
     
-    # データベースとサンプルデータの初期化
-    with app.app_context():
-        db.create_all()
-        initSampleData()
+    # データベース初期化（起動と分離）
+    # 注意: データベースの初期化は別途 init_database() 関数で行います
     
     return app
 
@@ -135,6 +135,31 @@ def initSampleData():
         db.session.add(garbageType)
     
     db.session.commit()
+
+
+def initDatabase(json_file: str = None):
+    """
+    データベースを初期化し、サンプルデータを追加する
+    この関数は起動とは別に呼び出される
+    Args:
+        json_file (str): 初期化に使用するJSONファイルパス（省略時はデフォルトデータ）
+    """
+    app = createApp()
+    with app.app_context():
+        print("データベーステーブルを作成中...")
+        db.create_all()
+        
+        if json_file and os.path.exists(json_file):
+            print(f"JSONファイルからデータを読み込み中: {json_file}")
+            from app.database_manager import DatabaseManager
+            result = DatabaseManager.import_from_json(json_file, clear_existing=True)
+            print(f"インポート完了: カテゴリ{result['imported_categories']}件, ゴミ種類{result['imported_garbage_types']}件")
+        else:
+            print("サンプルデータを追加中...")
+            initSampleData()
+            
+        print("データベースの初期化が完了しました！")
+        return app
 
 
 if __name__ == '__main__':

@@ -13,7 +13,7 @@
     @click="handleCardClick"
   >
     <div class="card-header">
-      <h2 class="day-title">{{ getDayInJapanese(category.date) }}</h2>
+      <h2 class="day-title">{{ formatDaysJapanese(category.date) }}</h2>
       <div v-if="category.special_days.length > 0" class="special-badge">
         特別回収日あり
       </div>
@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { GarbageCategory } from '@/types';
-import { DAYS_JP } from '@/types';
+import { DAYS_JP, formatDaysJapanese } from '@/types';
 
 // Props
 interface Props {

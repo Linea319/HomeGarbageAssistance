@@ -49,15 +49,24 @@
             class="search-result-item"
             @click="selectCategory(result.category)"
           >
-            <div class="garbage-name">{{ result.garbage_type.name }}</div>
-            <div class="category-info">
-              <span class="category">{{ result.category.category }}</span>
-              <span class="day">{{ getDayInJapanese(result.category.date) }}</span>
+            <div class="result-content">
+              <strong>{{ result.garbage_type.name }}</strong>
+              <p>{{ result.category.category }} ({{ formatDaysDisplay(result.category.date) }})</p>
             </div>
           </div>
         </div>
         
-        <div v-else-if="searchQuery && !loading" class="no-results">
+        <!-- メニュー項目 -->
+        <div class="menu-items">
+          <button @click="openDataManagement" class="menu-item">
+            ⚙️ データ管理
+          </button>
+          <button @click="showAbout" class="menu-item">
+            ℹ️ このアプリについて
+          </button>
+        </div>
+
+        <div v-if="searchQuery && !loading && searchResults.length === 0" class="no-results">
           検索結果が見つかりませんでした
         </div>
         
@@ -73,11 +82,12 @@
 import { ref, computed, onMounted } from 'vue';
 import { useGarbageApi } from '@/composables/useGarbageApi';
 import type { GarbageCategory, SearchResult } from '@/types';
-import { DAYS_JP } from '@/types';
+import { DAYS_JP, formatDaysJapanese } from '@/types';
 
 // Props and Emits
 const emit = defineEmits<{
   categorySelected: [category: GarbageCategory];
+  openDataManagement: [];
 }>();
 
 // Reactive data
@@ -136,8 +146,19 @@ function selectCategory(category: GarbageCategory) {
   closeMenu();
 }
 
-function getDayInJapanese(englishDay: string): string {
-  return DAYS_JP[englishDay as keyof typeof DAYS_JP] || englishDay;
+function formatDaysDisplay(date: string[] | string): string {
+  const days = Array.isArray(date) ? date : [date];
+  return days.map(day => DAYS_JP[day as keyof typeof DAYS_JP] || day).join('・');
+}
+
+function openDataManagement() {
+  emit('openDataManagement');
+  closeMenu();
+}
+
+function showAbout() {
+  alert('Home Garbage Assistance v1.0\n家庭のゴミ回収日管理アプリケーション');
+  closeMenu();
 }
 
 // Lifecycle

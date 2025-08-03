@@ -7,6 +7,7 @@ from flask import Blueprint, jsonify, request
 from app.models import db, GarbageCategory, GarbageType
 from datetime import datetime
 from typing import List, Dict, Any
+import json
 
 garbage_bp = Blueprint('garbage', __name__)
 
@@ -23,7 +24,26 @@ def getCategoriesByDay():
     
     try:
         if day:
-            categories = GarbageCategory.query.filter_by(date=day).all()
+            # 複数曜日対応：指定された曜日が含まれるカテゴリを抽出
+            all_categories = GarbageCategory.query.all()
+            filtered_categories = []
+            
+            for category in all_categories:
+                try:
+                    date_list = json.loads(category.date)
+                    # 後方互換性のため、文字列の場合も対応
+                    if isinstance(date_list, str):
+                        date_list = [date_list]
+                    
+                    if day in date_list:
+                        filtered_categories.append(category)
+                        
+                except json.JSONDecodeError:
+                    # JSONでない場合は単一の文字列として比較
+                    if category.date == day:
+                        filtered_categories.append(category)
+            
+            categories = filtered_categories
         else:
             categories = GarbageCategory.query.all()
             
@@ -49,12 +69,30 @@ def getTodayCategories():
         # 現在の曜日を取得
         today = datetime.now().strftime('%A')  # Monday, Tuesday, etc.
         
-        categories = GarbageCategory.query.filter_by(date=today).all()
+        # 複数曜日対応：dateフィールドがJSONで格納されているため
+        # すべてのカテゴリを取得して、今日の曜日が含まれているものを抽出
+        all_categories = GarbageCategory.query.all()
+        today_categories = []
+        
+        for category in all_categories:
+            try:
+                date_list = json.loads(category.date)
+                # 後方互換性のため、文字列の場合も対応
+                if isinstance(date_list, str):
+                    date_list = [date_list]
+                
+                if today in date_list:
+                    today_categories.append(category)
+                    
+            except json.JSONDecodeError:
+                # JSONでない場合は単一の文字列として比較
+                if category.date == today:
+                    today_categories.append(category)
         
         return jsonify({
             'success': True,
             'today': today,
-            'data': [category.to_dict() for category in categories]
+            'data': [category.to_dict() for category in today_categories]
         })
     except Exception as e:
         return jsonify({

@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "export_date": "2025-08-03T23:31:58.277360",
+    "version": "1.0",
+    "total_categories": 4,
+    "total_garbage_types": 10
+  },
+  "categories": [
+    {
+      "category": "可燃ゴミ",
+      "date": "Monday",
+      "method": "専用ゴミ袋に入れて出してください",
+      "special_days": [
+        "2024-04-11",
+        "2024-04-25"
+      ],
+      "notion": "生ごみは水気をよく切ってから出してください",
+      "garbage_types": [
+        "生ごみ",
+        "紙くず",
+        "木くず"
+      ]
+    },
+    {
+      "category": "不燃ゴミ",
+      "date": "Wednesday",
+      "method": "透明または半透明の袋に入れて出してください",
+      "special_days": [],
+      "notion": "金属類は分別してください",
+      "garbage_types": [
+        "金属類",
+        "ガラス",
+        "陶器"
+      ]
+    },
+    {
+      "category": "プラスチック",
+      "date": "Friday",
+      "method": "プラマークの付いた容器のみ",
+      "special_days": [],
+      "notion": "汚れを落としてから出してください",
+      "garbage_types": [
+        "プラスチック容器"
+      ]
+    },
+    {
+      "category": "資源ゴミ",
+      "date": "Saturday",
+      "method": "種類別に分けて出してください",
+      "special_days": [],
+      "notion": "ペットボトル、缶、ビンを分別",
+      "garbage_types": [
+        "ペットボトル",
+        "空き缶",
+        "ビン"
+      ]
+    }
+  ]
+}

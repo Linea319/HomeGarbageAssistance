@@ -83,7 +83,7 @@ fi
 # Set environment variables
 print_info "Setting environment variables..."
 export FLASK_ENV="$MODE"
-export FLASK_APP="app.py"
+export FLASK_APP="main.py"
 export PYTHONPATH="$(pwd)"
 
 # Display configuration

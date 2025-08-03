@@ -6,7 +6,7 @@
 export interface GarbageCategory {
   id: number;
   category: string;
-  date: string;
+  date: string[] | string; // 複数曜日対応：配列または文字列
   method: string;
   special_days: string[];
   notion: string;
@@ -46,3 +46,18 @@ export const DAYS_JP: Record<DayOfWeek, string> = {
   'Saturday': '土曜日',
   'Sunday': '日曜日'
 };
+
+/**
+ * 日付フィールドを配列として取得する（後方互換性対応）
+ */
+export function getDaysAsArray(date: string[] | string): string[] {
+  return Array.isArray(date) ? date : [date];
+}
+
+/**
+ * 複数曜日を日本語で表示する
+ */
+export function formatDaysJapanese(date: string[] | string): string {
+  const days = getDaysAsArray(date);
+  return days.map(day => DAYS_JP[day as DayOfWeek] || day).join('・');
+}
