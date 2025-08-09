@@ -70,7 +70,16 @@ if [ -d "$FRONTEND_DIR" ]; then
   info "📱 フロントエンド環境をセットアップ中..."
   cd "$FRONTEND_DIR"
   if [ -f "package.json" ]; then
-    npm install
+    npm install --no-audit --no-fund
+    # esbuild ヘルスチェック
+    if ! node -e "require('esbuild'); console.log('esbuild ok')" >/dev/null 2>&1; then
+      warn "esbuild がこの端末で動作しません。ソースから再ビルドします。"
+      pkg install -y golang
+      npm rebuild esbuild --build-from-source || {
+        warn "再ビルドに失敗。esbuildを0.19系に固定して再試行します。"
+        npm i -D esbuild@0.19.12 --force
+      }
+    fi
     success "フロントエンド依存関係のインストール完了"
   else
     warn "package.json が見つかりません。フロントエンドは未初期化の可能性があります。"
