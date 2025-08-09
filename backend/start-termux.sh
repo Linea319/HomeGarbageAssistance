@@ -155,6 +155,6 @@ print_success "Starting server on all interfaces (0.0.0.0:5000)..."
 print_info "Press Ctrl+C to stop the server"
 echo
 
-python main.py
+exec python main.py
 
 print_info "Application stopped"

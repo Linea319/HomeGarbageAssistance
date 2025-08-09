@@ -287,6 +287,15 @@ start_services() {
         print_info "Opening browser..."
         open http://localhost:$FRONTEND_PORT &
     fi
+
+    # Keep manager running to avoid sending SIGHUP to children
+    pids=()
+    [[ -n "$BACKEND_PID" ]] && pids+=("$BACKEND_PID")
+    [[ -n "$FRONTEND_PID" ]] && pids+=("$FRONTEND_PID")
+    if (( ${#pids[@]} > 0 )); then
+        print_info "Waiting for services to exit (Press Ctrl+C to stop)"
+        wait "${pids[@]}"
+    fi
 }
 
 # Main command execution

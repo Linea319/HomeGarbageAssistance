@@ -102,12 +102,12 @@ echo
 if [ "$MODE" == "production" ]; then
     print_info "Starting Flask application in PRODUCTION mode..."
     print_warning "Debug mode is disabled"
-    python main.py
+    exec python main.py
 else
     print_info "Starting Flask application in DEVELOPMENT mode..."
     print_info "Debug mode is enabled"
     print_info "API will be available at: http://localhost:5100"
-    python main.py
+    exec python main.py
 fi
 
 print_info "Application stopped"
