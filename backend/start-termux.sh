@@ -135,11 +135,11 @@ if command -v ifconfig &> /dev/null; then
     LOCAL_IP=$(ifconfig 2>/dev/null | grep -E "inet.*192\.168\.|inet.*10\.|inet.*172\." | head -1 | awk '{print $2}' | cut -d: -f2)
     if [ ! -z "$LOCAL_IP" ]; then
         echo "- Local IP: $LOCAL_IP"
-        echo "- Access URL: http://$LOCAL_IP:5000"
+        echo "- Access URL: http://$LOCAL_IP:5100"
     fi
 fi
-echo "- Localhost: http://localhost:5000"
-echo "- All interfaces: http://0.0.0.0:5000"
+echo "- Localhost: http://localhost:5100"
+echo "- All interfaces: http://0.0.0.0:5100"
 echo
 
 # Start the application
@@ -155,6 +155,6 @@ print_success "Starting server on all interfaces (0.0.0.0:5000)..."
 print_info "Press Ctrl+C to stop the server"
 echo
 
-python app.py
+python main.py
 
 print_info "Application stopped"
