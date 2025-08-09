@@ -7,7 +7,6 @@ import json
 import os
 from datetime import datetime
 from app.models import db, GarbageCategory, GarbageType
-from flask import current_app
 
 class DatabaseManager:
     """データベース管理クラス"""
