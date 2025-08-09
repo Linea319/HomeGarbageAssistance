@@ -287,7 +287,8 @@ start_services() {
         print_info "Opening browser..."
         open http://localhost:$FRONTEND_PORT &
     fi
-    
+}
+
 # Main command execution
 case "$COMMAND" in
     start)
@@ -304,5 +305,9 @@ case "$COMMAND" in
         ;;
     status)
         check_status
+        ;;
+    *)
+        print_error "Unknown command: $COMMAND"
+        exit 1
         ;;
 esac
