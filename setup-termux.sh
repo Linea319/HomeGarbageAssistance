@@ -34,7 +34,7 @@ pkg update -y
 
 # Install base packages
 info "📦 必要なパッケージをインストール中..."
-pkg install -y python python-pip nodejs npm git
+pkg install -y python python-pip nodejs git
 
 # Optional: Termux:API (for wakelock etc.)
 if ! command -v termux-wake-lock >/dev/null 2>&1; then
