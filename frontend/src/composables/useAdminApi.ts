@@ -49,7 +49,7 @@ export class AdminApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/admin${endpoint}`, {
+      const response = await fetch(`${this.baseUrl}/admin${endpoint}`, {
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
