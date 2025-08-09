@@ -3,7 +3,7 @@
   現在の日付表示とハンバーガーメニューを管理する
 -->
 <template>
-  <header class="header">
+  <header class="header" :style="styleVars">
     <div class="header-content">
       <div class="date-info">
         <h1 class="date">{{ currentDate }}</h1>
@@ -81,8 +81,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useGarbageApi } from '@/composables/useGarbageApi';
-import type { GarbageCategory, SearchResult } from '@/types';
-import { DAYS_JP, formatDaysJapanese } from '@/types';
+import type { GarbageCategory, SearchResult, DayOfWeek } from '@/types';
+import { DAYS_JP } from '@/types';
+import { getThemeForDay } from '@/constants/dayThemes';
 
 // Props and Emits
 const emit = defineEmits<{
@@ -99,16 +100,18 @@ const searchResults = ref<SearchResult[]>([]);
 const { searchGarbageType, loading } = useGarbageApi();
 
 // Computed properties
-const currentDate = computed(() => {
-  const now = new Date();
-  return `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
-});
+const now = new Date();
+const currentDate = computed(() => `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`);
+const dayNames: Record<DayOfWeek, string> = DAYS_JP;
+const currentDayKey = (['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] as DayOfWeek[])[now.getDay()];
+const currentDay = computed(() => dayNames[currentDayKey]);
 
-const currentDay = computed(() => {
-  const now = new Date();
-  const dayNames = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
-  return dayNames[now.getDay()];
-});
+// ヘッダーのテーマ色（単色）と共通変数 <<DateColor>> を適用
+const theme = computed(() => getThemeForDay(currentDayKey));
+const styleVars = computed(() => ({
+  '--DateColor': theme.value.DateColor,
+  backgroundColor: 'var(--DateColor)'
+}));
 
 // Methods
 function toggleMenu() {
@@ -127,12 +130,10 @@ function closeMenu() {
 
 function onSearchInput() {
   // リアルタイム検索の場合はここで実装
-  // 現在はEnterキーまたは検索ボタンでのみ検索実行
 }
 
 async function performSearch() {
   if (!searchQuery.value.trim()) return;
-  
   try {
     const results = await searchGarbageType(searchQuery.value);
     searchResults.value = results;
@@ -169,7 +170,6 @@ onMounted(() => {
 
 <style scoped>
 .header {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
   color: white;
   position: sticky;
   top: 0;
@@ -186,21 +186,9 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.date-info {
-  flex: 1;
-}
-
-.date {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0;
-}
-
-.day {
-  font-size: 1rem;
-  margin: 0.25rem 0 0 0;
-  opacity: 0.9;
-}
+.date-info { flex: 1; }
+.date { font-size: 1.0rem; margin: 0; }
+.day { font-size: 1.5rem; font-weight: bold; margin: 0.25rem 0 0 0; opacity: 0.9; }
 
 .hamburger-menu {
   background: none;
@@ -213,154 +201,38 @@ onMounted(() => {
   height: 2rem;
   padding: 0;
 }
-
-.hamburger-menu span {
-  width: 100%;
-  height: 3px;
-  background-color: white;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-}
-
-.hamburger-menu.active span:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
-}
-
-.hamburger-menu.active span:nth-child(2) {
-  opacity: 0;
-}
-
-.hamburger-menu.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(7px, -6px);
-}
+.hamburger-menu span { width: 100%; height: 3px; background-color: white; border-radius: 2px; transition: all 0.3s ease; }
+.hamburger-menu.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger-menu.active span:nth-child(2) { opacity: 0; }
+.hamburger-menu.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -6px); }
 
 .menu-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1001;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 5rem;
+  position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 1001; display: flex; justify-content: center; align-items: flex-start; padding-top: 5rem;
 }
-
 .menu-content {
-  background: white;
-  color: #333;
-  border-radius: 8px;
-  padding: 2rem;
-  max-width: 90%;
-  width: 400px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background: white; color: #333; border-radius: 8px; padding: 2rem; max-width: 90%; width: 400px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
+.menu-content h2 { margin: 0 0 1rem 0; color: #4CAF50; }
 
-.menu-content h2 {
-  margin: 0 0 1rem 0;
-  color: #4CAF50;
-}
+.search-container { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.search-input { flex: 1; padding: 0.75rem; border: 2px solid #ddd; border-radius: 4px; font-size: 1rem; }
+.search-input:focus { outline: none; border-color: #4CAF50; }
+.search-button { padding: 0.75rem 1.5rem; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+.search-button:hover { background-color: #45a049; }
 
-.search-container {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
+.search-results { margin-top: 1rem; }
+.search-results h3 { margin: 0 0 0.5rem 0; color: #333; }
+.search-result-item { padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s ease; }
+.search-result-item:hover { background-color: #f5f5f5; border-color: #4CAF50; }
+.garbage-name { font-weight: bold; margin-bottom: 0.25rem; }
+.category-info { display: flex; gap: 0.5rem; font-size: 0.9rem; color: #666; }
+.category { background-color: #e8f5e8; color: #4CAF50; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem; }
 
-.search-input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 2px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #4CAF50;
-}
-
-.search-button {
-  padding: 0.75rem 1.5rem;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.search-button:hover {
-  background-color: #45a049;
-}
-
-.search-results {
-  margin-top: 1rem;
-}
-
-.search-results h3 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-}
-
-.search-result-item {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.search-result-item:hover {
-  background-color: #f5f5f5;
-  border-color: #4CAF50;
-}
-
-.garbage-name {
-  font-weight: bold;
-  margin-bottom: 0.25rem;
-}
-
-.category-info {
-  display: flex;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.category {
-  background-color: #e8f5e8;
-  color: #4CAF50;
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-}
-
-.no-results,
-.loading {
-  text-align: center;
-  padding: 1rem;
-  color: #666;
-}
+.no-results, .loading { text-align: center; padding: 1rem; color: #666; }
 
 @media (max-width: 768px) {
-  .header-content {
-    padding: 0.75rem;
-  }
-  
-  .date {
-    font-size: 1.25rem;
-  }
-  
-  .menu-content {
-    margin: 1rem;
-    padding: 1.5rem;
-    width: auto;
-  }
+  .header-content { padding: 0.75rem; }
+  .date { font-size: 1.25rem; }
+  .menu-content { margin: 1rem; padding: 1.5rem; width: auto; }
 }
 </style>

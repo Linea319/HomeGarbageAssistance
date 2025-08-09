@@ -36,20 +36,18 @@
       </div>
       
       <div v-else class="cards-container">
-        <!-- 曜日カード一覧 -->
+        <!-- 曜日カード一覧（曜日ごとに1枚） -->
         <div 
           class="cards-scroll"
           ref="cardsScrollRef"
           @wheel="handleWheel"
         >
-          <GarbageCard
-            v-for="category in allCategories"
-            :key="category.id"
-            :category="category"
-            :is-active="activeCardId === category.id"
-            :is-expanded="expandedCardId === category.id"
-            :is-today="isTodayCard(category)"
-            @card-click="onCardClick"
+          <DayCard
+            v-for="day in daysOfWeek"
+            :key="day"
+            :day="day"
+            :categories="categoriesByDay[day] || []"
+            :is-today="todayDay === day"
           />
         </div>
         
@@ -106,6 +104,7 @@ import { ref, onMounted, computed, nextTick, watch } from 'vue';
 import AppHeader from '@/components/AppHeader.vue';
 import GarbageCard from '@/components/GarbageCard.vue';
 import AdminPanel from '@/components/AdminPanel.vue';
+import DayCard from '@/components/DayCard.vue';
 import { useGarbageApi } from '@/composables/useGarbageApi';
 import type { GarbageCategory, SearchResult, DayOfWeek } from '@/types';
 import { DAYS_JP, getDaysAsArray } from '@/types';
@@ -124,26 +123,34 @@ const showAdminPanel = ref(false);
 const { 
   getAllCategories, 
   getTodayCategories, 
-  getCategoriesByDay, 
   loading, 
   error 
 } = useGarbageApi();
 
+const daysOfWeek: DayOfWeek[] = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+
+// 曜日 -> カテゴリ一覧 のマップ
+const categoriesByDay = computed<Record<string, GarbageCategory[]>>(() => {
+  const map: Record<string, GarbageCategory[]> = {
+    Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: []
+  }
+  for (const cat of allCategories.value) {
+    const days = Array.isArray(cat.date) ? cat.date : [cat.date]
+    for (const d of days) {
+      if (!map[d]) map[d] = []
+      map[d].push(cat)
+    }
+  }
+  return map
+})
+
 // Computed properties
 const tomorrowCategories = computed(() => {
-  if (!todayDay.value) return [];
-  
-  const days: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const todayIndex = days.indexOf(todayDay.value as DayOfWeek);
-  const tomorrowIndex = (todayIndex + 1) % 7;
-  const tomorrowDay = days[tomorrowIndex];
-  
-  // 複数曜日対応：明日の曜日が含まれるカテゴリを抽出
-  return allCategories.value.filter(cat => {
-    const catDays = Array.isArray(cat.date) ? cat.date : [cat.date];
-    return catDays.includes(tomorrowDay);
-  });
-});
+  if (!todayDay.value) return []
+  const idx = daysOfWeek.indexOf(todayDay.value as DayOfWeek)
+  const next = daysOfWeek[(idx + 1) % 7]
+  return categoriesByDay.value[next] || []
+})
 
 // Methods
 async function loadData() {
