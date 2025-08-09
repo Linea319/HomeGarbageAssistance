@@ -12,6 +12,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: '0.0.0.0', // Raspberry Pi上でLAN内からアクセス可能にする
     proxy: {
       '/api': {
         target: 'http://localhost:5100',

@@ -27,13 +27,13 @@ def createApp(configName: str = None) -> Flask:
     app.config.from_object(config.get(configName, config['default']))
     
     # CORS設定（フロントエンドからのアクセス許可）
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:*"],
-            "methods": ["GET", "POST", "PUT", "DELETE"],
-            "allow_headers": ["Content-Type", "Authorization"]
-        }
-    })
+    # config.py で定義した CORS_RESOURCES を使用
+    cors_resources = app.config.get('CORS_RESOURCES')
+    if cors_resources:
+        CORS(app, resources=cors_resources)
+    else:
+        # 後方互換: 万一設定がない場合の安全なデフォルト
+        CORS(app, resources={r"/api/*": {"origins": app.config.get('ALLOWED_ORIGINS', [])}})
     
     # データベース初期化
     from .models import db

@@ -23,6 +23,22 @@ class Config:
     #ポート
     PORT_NUMBER = 5100  # デフォルトは5100番ポート
 
+    # CORS 設定（フロントエンドからのアクセス許可）
+    ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://192.168.1.21:5173",
+    ]
+    CORS_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    CORS_ALLOW_HEADERS = ["Content-Type", "Authorization"]
+    CORS_RESOURCES = {
+        r"/api/*": {
+            "origins": ALLOWED_ORIGINS,
+            "methods": CORS_METHODS,
+            "allow_headers": CORS_ALLOW_HEADERS,
+        }
+    }
+
 
 class DevelopmentConfig(Config):
     """

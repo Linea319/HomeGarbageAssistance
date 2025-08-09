@@ -102,12 +102,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick, watch } from 'vue';
 import AppHeader from '@/components/AppHeader.vue';
-import GarbageCard from '@/components/GarbageCard.vue';
 import AdminPanel from '@/components/AdminPanel.vue';
 import DayCard from '@/components/DayCard.vue';
 import { useGarbageApi } from '@/composables/useGarbageApi';
 import type { GarbageCategory, SearchResult, DayOfWeek } from '@/types';
-import { DAYS_JP, getDaysAsArray } from '@/types';
+import { DAYS_JP } from '@/types';
 
 // Reactive data
 const allCategories = ref<GarbageCategory[]>([]);
@@ -180,17 +179,6 @@ async function retryLoad() {
   await loadData();
 }
 
-function onCardClick(category: GarbageCategory) {
-  if (expandedCardId.value === category.id) {
-    // 既に展開されている場合は折りたたむ
-    expandedCardId.value = null;
-  } else {
-    // 新しいカードを展開
-    expandedCardId.value = category.id;
-    activeCardId.value = category.id;
-  }
-}
-
 function onCategorySelected(category: GarbageCategory) {
   // 検索からのカテゴリ選択
   activeCardId.value = category.id;
@@ -218,12 +206,6 @@ function closeAdminPanel() {
 function closeSearchPopup() {
   showSearchPopup.value = false;
   selectedSearchResult.value = null;
-}
-
-function isTodayCard(category: GarbageCategory): boolean {
-  // 複数曜日対応：今日の曜日が含まれるかチェック
-  const catDays = Array.isArray(category.date) ? category.date : [category.date];
-  return catDays.includes(todayDay.value);
 }
 
 function getDayInJapanese(englishDay: string): string {
