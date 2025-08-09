@@ -41,7 +41,7 @@ export class AdminApiClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5100';
+    this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5100';
   }
 
   private async request<T>(
