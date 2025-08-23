@@ -21,7 +21,7 @@
         class="category-item"
         :class="{ 
           expanded: expandedIds.has(cat.id),
-          'grayed-out': isSpecialDayThisWeek(cat.special_days, props.day) == false
+          'grayed-out': shouldGrayOut(cat.special_days, props.day)
         }"
       >
         <button class="category-header" @click="toggle(cat.id)">
@@ -119,6 +119,14 @@ function isSpecialDayThisWeek(specialDays: string[], dayOfWeek: DayOfWeek | stri
   
   // 特別回収日に今週の該当曜日が含まれているかチェック
   return specialDays.includes(thisWeekDate)
+}
+
+function shouldGrayOut(specialDays: string[], dayOfWeek: DayOfWeek | string): boolean {
+  // 特別回収日が設定されていない場合はfalse
+  if (!specialDays || specialDays.length === 0) return false
+
+  // 特別回収日に今週の該当曜日が含まれているかチェック
+  return !isSpecialDayThisWeek(specialDays, dayOfWeek)
 }
 
 function formatSpecialDay(dateString: string): string {
