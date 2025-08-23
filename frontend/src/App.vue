@@ -107,6 +107,7 @@ import DayCard from '@/components/DayCard.vue';
 import { useGarbageApi } from '@/composables/useGarbageApi';
 import type { GarbageCategory, SearchResult, DayOfWeek } from '@/types';
 import { DAYS_JP } from '@/types';
+import { sortDaysStartingToday } from '@/utils/dateUtils';
 
 // Reactive data
 const allCategories = ref<GarbageCategory[]>([]);
@@ -152,25 +153,6 @@ const tomorrowCategories = computed(() => {
 })
 
 // Methods
-function sortDaysStartingToday(): DayOfWeek[] {
-  const allDays: DayOfWeek[] = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
-  
-  if (!todayDay.value) {
-    return allDays
-  }
-  
-  const todayIndex = allDays.indexOf(todayDay.value as DayOfWeek)
-  if (todayIndex === -1) {
-    return allDays
-  }
-  
-  // 今日の曜日から始まる配列に並び替え
-  return [
-    ...allDays.slice(todayIndex),
-    ...allDays.slice(0, todayIndex)
-  ]
-}
-
 async function loadData() {
   try {
     // 今日のカテゴリ情報を取得

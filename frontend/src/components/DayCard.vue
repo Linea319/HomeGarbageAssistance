@@ -5,7 +5,10 @@
     :style="styleVars"
   >
     <div class="card-header">
-      <h2 class="day-title">{{ dayLabel }}</h2>
+      <div class="header-title">
+        <h2 class="day-title">{{ dayLabel }}</h2>
+        <span class="date-subtitle">{{ dateLabel }}</span>
+      </div>
       <div v-if="categories.length > 0" class="count-badge">{{ categories.length }}</div>
     </div>
 
@@ -16,10 +19,21 @@
         v-for="cat in categories" 
         :key="cat.id" 
         class="category-item"
-        :class="{ expanded: expandedIds.has(cat.id) }"
+        :class="{ 
+          expanded: expandedIds.has(cat.id),
+          'grayed-out': isSpecialDayThisWeek(cat.special_days, props.day) == false
+        }"
       >
         <button class="category-header" @click="toggle(cat.id)">
-          <span class="category-name">{{ cat.category }}</span>
+          <div class="header-content">
+            <span class="category-name">{{ cat.category }}</span>
+            <span 
+              v-if="cat.special_days && cat.special_days.length > 0"
+              class="special-day-icon"
+            >
+              特別回収日
+            </span>
+          </div>
           <span class="chevron" :class="{ open: expandedIds.has(cat.id) }">▾</span>
         </button>
 
@@ -58,6 +72,7 @@ import { computed, ref } from 'vue'
 import type { GarbageCategory, DayOfWeek } from '@/types'
 import { DAYS_JP } from '@/types'
 import { getThemeForDay } from '@/constants/dayThemes'
+import { getThisWeekDate } from '@/utils/dateUtils'
 
 interface Props {
   day: DayOfWeek | string
@@ -70,6 +85,17 @@ const expandedIds = ref<Set<number>>(new Set())
 
 const dayLabel = computed(() => DAYS_JP[props.day as DayOfWeek] || String(props.day))
 
+// 日付ラベルを計算
+const dateLabel = computed(() => {
+  const thisWeekDate = getThisWeekDate(props.day)
+  if (!thisWeekDate) return ''
+  
+  const date = new Date(thisWeekDate)
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  return `${month}/${day}`
+})
+
 // テーマ色をCSS変数として供給（<<DateColor>> で統一）
 const theme = computed(() => getThemeForDay(props.day))
 const styleVars = computed(() => ({
@@ -81,6 +107,18 @@ const styleVars = computed(() => ({
 function toggle(id: number) {
   if (expandedIds.value.has(id)) expandedIds.value.delete(id)
   else expandedIds.value.add(id)
+}
+
+function isSpecialDayThisWeek(specialDays: string[], dayOfWeek: DayOfWeek | string): boolean {
+  // 特別回収日が設定されていない場合はfalse
+  if (!specialDays || specialDays.length === 0) return false
+  
+  // 今週の該当曜日の日付を取得
+  const thisWeekDate = getThisWeekDate(dayOfWeek)
+  if (!thisWeekDate) return false
+  
+  // 特別回収日に今週の該当曜日が含まれているかチェック
+  return specialDays.includes(thisWeekDate)
 }
 
 function formatSpecialDay(dateString: string): string {
@@ -115,9 +153,19 @@ function formatSpecialDay(dateString: string): string {
   justify-content: space-between;
   margin-bottom: 0.5rem;
 }
+.header-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
 .day-title {
   margin: 0;
   font-size: 1.25rem;
+  color: var(--DateColor);
+}
+.date-subtitle {
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--DateColor);
 }
 .count-badge {
@@ -133,8 +181,19 @@ function formatSpecialDay(dateString: string): string {
 }
 .category-item {
   border-top: 1px dashed #e5e7eb;
+  transition: opacity 0.3s ease;
 }
 .category-item:first-of-type { border-top: none; }
+.category-item.grayed-out {
+  opacity: 0.4;
+}
+.category-item.grayed-out .category-name {
+  color: #9ca3af;
+}
+.category-item.grayed-out .special-day-icon {
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3);
+}
 .category-header {
   width: 100%;
   display: flex;
@@ -146,7 +205,23 @@ function formatSpecialDay(dateString: string): string {
   cursor: pointer;
   font-size: 1rem;
 }
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
 .category-name { font-weight: 600; color: #34495e; }
+.special-day-icon {
+  background: linear-gradient(135deg, #ff6b6b, #ff5722);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
 .chevron { transition: transform .2s ease; }
 .chevron.open { transform: rotate(180deg); }
 .category-details { padding: 0 0 0.6rem 0; }
