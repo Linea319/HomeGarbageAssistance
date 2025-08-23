@@ -126,7 +126,7 @@ const {
   error 
 } = useGarbageApi();
 
-const daysOfWeek: DayOfWeek[] = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+const daysOfWeek = ref<DayOfWeek[]>(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'])
 
 // 曜日 -> カテゴリ一覧 のマップ
 const categoriesByDay = computed<Record<string, GarbageCategory[]>>(() => {
@@ -146,17 +146,39 @@ const categoriesByDay = computed<Record<string, GarbageCategory[]>>(() => {
 // Computed properties
 const tomorrowCategories = computed(() => {
   if (!todayDay.value) return []
-  const idx = daysOfWeek.indexOf(todayDay.value as DayOfWeek)
-  const next = daysOfWeek[(idx + 1) % 7]
+  const idx = daysOfWeek.value.indexOf(todayDay.value as DayOfWeek)
+  const next = daysOfWeek.value[(idx + 1) % 7]
   return categoriesByDay.value[next] || []
 })
 
 // Methods
+function sortDaysStartingToday(): DayOfWeek[] {
+  const allDays: DayOfWeek[] = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+  
+  if (!todayDay.value) {
+    return allDays
+  }
+  
+  const todayIndex = allDays.indexOf(todayDay.value as DayOfWeek)
+  if (todayIndex === -1) {
+    return allDays
+  }
+  
+  // 今日の曜日から始まる配列に並び替え
+  return [
+    ...allDays.slice(todayIndex),
+    ...allDays.slice(0, todayIndex)
+  ]
+}
+
 async function loadData() {
   try {
     // 今日のカテゴリ情報を取得
     const todayResult = await getTodayCategories();
     todayDay.value = todayResult.today;
+    
+    // 今日から始まる曜日順に並び替え
+    daysOfWeek.value = sortDaysStartingToday();
     
     // 全カテゴリを取得
     const categories = await getAllCategories();
